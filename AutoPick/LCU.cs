@@ -26,8 +26,7 @@ namespace Luna.Autopick.LCU
         private string _authToken;
 
         //events
-        public event EventHandler OnConnected;
-        public event EventHandler OnDisconnected;
+        public event Action OnConnected;
 
         protected virtual void OnClientOpened()
         {
@@ -37,21 +36,23 @@ namespace Luna.Autopick.LCU
         {
 
         }
-        public void _LockfileListener()
+        public void LockfileListener()
         {
-            foreach(var p in Process.GetProcessesByName("LeagueClient"))
+            foreach(var p in Process.GetProcessesByName("LeagueClientUx"))
             {
                 ManagementObjectSearcher mos = new ManagementObjectSearcher(
                  "SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + p.Id.ToString() );
                 var moc = mos.Get();
                 var commandLine = (string)moc.OfType<ManagementObject>().First()["CommandLine"];
+                Console.WriteLine("ESSE AQUI VAI");
+                Console.WriteLine(commandLine);
+                OnConnected?.Invoke();
 
                 //RegEX validation;
                 //TODO: Validar RegEx e atribuir os filds respectivos
                 //ProcessName = ;
 
             }
-            // 
         }
 
         public void PickChampion(Champion champion)

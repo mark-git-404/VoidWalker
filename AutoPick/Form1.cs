@@ -34,7 +34,9 @@ namespace AutoPick
         private void button1_Click(object sender, EventArgs e)
         {
             LCU lcu = new LCU();
-            lcu._LockfileListener();
+            lcu.OnConnected += ConsoleConnected;
+            lcu.LockfileListener();
         }
+        private void ConsoleConnected() => Console.WriteLine("CONECTO!");
     }
 }
