@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Luna.Autopick;
 using Luna.Autopick.LCU;
+using Luna.Autopick.Rift;
+using Luna.Autopick.Models;
 
 namespace AutoPick
 {
@@ -28,17 +30,26 @@ namespace AutoPick
             foreach(var champion in champions)
             {
                 comboBox1.Items.Add(champion);
+                if(champion == "Yone")
+                {
+                    Champion yone = autopick.champions.Data["Yone"];
+                    Console.WriteLine(yone.Key);
+                }
             }
         }
-
+        
         private void button1_Click(object sender, EventArgs e)
         {
-            LCU lcu = new LCU();
-            //lcu.OnConnected += ConsoleConnected;
-            //lcu.OnConnected += ConsoleConnected2;
-            lcu.GetStatus();
+            LeagueClient lcu = new LeagueClient();
+            lcu.SetProperties();
+            //lcu.OnConnected += FoiConectado;
+            //lcu.OnDisconnected += FoiDesconectado;
+            //lcu.GetStatus();
+            Rift rift = new Rift(lcu);
+            rift.GetSummonerName();
+
         }
-        private void ConsoleConnected() => Console.WriteLine("CONECTO!");
-        private void ConsoleConnected2() => Console.WriteLine("CONECTO 2!");
+        private void FoiConectado() => Console.WriteLine("Foi Conectado!");
+        private void FoiDesconectado() => Console.WriteLine("Foi Desconectado!");
     }
 }

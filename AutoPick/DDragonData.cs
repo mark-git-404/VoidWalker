@@ -13,7 +13,7 @@ namespace Luna.Autopick
 {
     class DDragonData
     {
-        DDRoot champions { get; set; }
+        public DDRoot champions { get; set; }
         
         public List<string> GetAllChampions()
         {

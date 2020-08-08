@@ -1,13 +1,13 @@
-﻿using Luna.Autopick.Models;
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
 
 namespace Luna.Autopick.LCU
 {
-    class LCU
+    class LeagueClient
     {
         //Properties
         public string ProcessName { get => _processName; }
@@ -16,6 +16,7 @@ namespace Luna.Autopick.LCU
         public string Username { get => "riot"; }
         public string AuthToken { get => _authToken; }
         public string Path { get => _path; }
+        public string URL { get => Protocol + "://127.0.0.1:" + Port; }
 
         //_Fields
         private string _processName;
@@ -23,21 +24,19 @@ namespace Luna.Autopick.LCU
         private string _authToken;
         private string _path;
 
+        private bool isConnected;
+
         //events
         public event Action OnConnected;
-
-        protected virtual void OnClientOpened()
-        {
-        }
+        public event Action OnDisconnected;
 
         public void Start()
         {
 
         }
 
-        public void GetStatus()
+        public void SetProperties()
         {
-
             foreach (var p in Process.GetProcessesByName("LeagueClientUx"))
             {
                 ManagementObjectSearcher mos = new ManagementObjectSearcher(
@@ -48,9 +47,9 @@ namespace Luna.Autopick.LCU
                 Console.WriteLine(commandLine);
 
                 //Regex 
-                string re_appPort = @"--app-port=[0-9]{5}"; 
-                string re_authToken = @"--remoting-auth-token=[0-z]{22}"; 
-                string re_pidName = @"--app-name=[A-z]{12}"; 
+                string re_appPort = @"--app-port=[0-9]{5}";
+                string re_authToken = @"--remoting-auth-token=[0-z]{22}";
+                string re_pidName = @"--app-name=[A-z]{12}";
                 string re_path = @"--output-base-dir=[0-z\s]*";
 
                 //Format
@@ -71,14 +70,46 @@ namespace Luna.Autopick.LCU
                 _processName = Regex.Match(cmd_pidName, nameFormat).Value;
                 _path = Regex.Match(cmd_path, pathFormat).Value;
 
-                Console.WriteLine(_path);
+                Console.WriteLine(_authToken);
             }
-            OnConnected?.Invoke();
         }
 
-        public void PickChampion(Champion champion)
+        public void GetStatus()
         {
+            string lockfilePath = Path + @"\lockfile";
 
+            if (File.Exists(lockfilePath))
+            {
+                isConnected = true;
+            }
+            else
+            {
+                isConnected = false;
+            }
+            
+            //false
+            while (true)
+            {
+                if (isConnected)
+                {
+                    if (!File.Exists(lockfilePath))
+                    {
+                        //Console.WriteLine("Desconectado");
+                        OnDisconnected?.Invoke();
+                        isConnected = false;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(lockfilePath))
+                    {
+                        //Console.WriteLine("Conectado");
+                        OnConnected?.Invoke();
+                        isConnected = true;
+                    }
+                }
+
+            }
         }
     }
 }
