@@ -1,33 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Luna.Autopick;
+using System.Threading;
+
 using Luna.Autopick.LCU;
 using Luna.Autopick.Rift;
-using Luna.Autopick.Models;
-using System.IO;
-using System.Threading;
+using Luna.Autopick.DDragon;
+using Luna.AutoPick.Rift.Models;
+using Luna.Autopick.DDragon.Models;
 
 namespace VoidWalker
 {
-    public partial class Form1 : Form
+    public partial class VoidWalker : Form
     {
 
         private Champion championSelected;
-        public Form1()
+        public VoidWalker()
         {
             InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            DDragonData autopick = new DDragonData();
+            DDragon autopick = new DDragon();
 
             List<string> champions = autopick.GetAllChampions();
 
@@ -44,17 +39,12 @@ namespace VoidWalker
         private void button1_Click(object sender, EventArgs e)
         {
             
-            //lcu.OnConnected += FoiConectado;
-            //lcu.OnDisconnected += FoiDesconectado;
-            //lcu.GetStatus();
-            //rift.GetSummonerName();
             Thread t_thread = new Thread(T_Pick);
             t_thread.IsBackground = true;
             t_thread.Start();
 
         }
-        private void FoiConectado() => Console.WriteLine("Foi Conectado!");
-        private void FoiDesconectado() => Console.WriteLine("Foi Desconectado!");
+
         private void T_Pick()
         {
             LeagueClient lcu = new LeagueClient();

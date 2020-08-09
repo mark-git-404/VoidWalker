@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Autopick.Models
+namespace Luna.Autopick.DDragon.Models
 {
     class DDRoot
     {

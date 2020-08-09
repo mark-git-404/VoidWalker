@@ -9,6 +9,14 @@ using System.Threading.Tasks;
 
 namespace Luna.Autopick.Rift
 {
+    enum RiftMethods
+    {
+        GET = 0,
+        POST = 1,
+        PUT = 2,
+        DELETE = 3,
+        PATCH = 4,
+    }
     class Rift
     {
         //Fields
@@ -165,12 +173,5 @@ namespace Luna.Autopick.Rift
 
 
     }
-    enum RiftMethods
-    {
-        GET = 0,
-        POST = 1,
-        PUT = 2,
-        DELETE = 3,
-        PATCH = 4,
-    }
+    
 }

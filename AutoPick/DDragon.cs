@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-using Luna.Autopick.Models;
+using Luna.Autopick.DDragon.Models;
 
-namespace Luna.Autopick
+namespace Luna.Autopick.DDragon
 {
-    class DDragonData
+    class DDragon
     {
         public DDRoot champions { get; set; }
         
