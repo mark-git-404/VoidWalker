@@ -1,11 +1,11 @@
 ﻿using Luna.Autopick.LCU;
+using Luna.AutoPick.Rift.Models;
+using Newtonsoft.Json;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace Luna.Autopick.Rift
 {
@@ -13,110 +13,164 @@ namespace Luna.Autopick.Rift
     {
         //Fields
         private LeagueClient LeagueClient;
-
+        private HttpClient httpClient;
         //Events
-        public event Action OnReadyCheck;
+        public event System.Action OnReadyCheck;
 
         public Rift(LeagueClient leagueclient)
         {
             LeagueClient = leagueclient;
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
+            //HTTP
+            httpClient = new HttpClient();
+
+            httpClient.BaseAddress = new Uri(LeagueClient.URL);
+            httpClient.DefaultRequestHeaders.Clear();
+            //Auth
+            httpClient.DefaultRequestHeaders.Add(
+                "authorization",
+                "Basic " + Convert.ToBase64String(
+                Encoding.Default.GetBytes(LeagueClient.Username + ":" + LeagueClient.AuthToken)));
+
+            Console.WriteLine(LeagueClient.Username);
+            Console.WriteLine(LeagueClient.AuthToken);
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
         }
+
         //Methods
-        public string GetSummonerName()
+        public bool PickChampion(int ChampionId)
         {
-            string summoner =  Request<string>("/lol-summoner/v1/current-summoner", "GET");
-            return summoner;
-        }
-        public void Check(string tipo)
-            /// "accept" | "decline"
-        {
-            Request("/lol-matchmaking/v1/ready-check/" + tipo, "POST");
-        }
-        
-        //Listeners
-        public void ReadyCheckListen()
-        {
-            bool founded = false;
-            while (!founded)
+                bool success = false;
+            try
             {
-                string searchState = Request<string>("/lol-matchmaking/v1/search", "GET");
+                string session_str = ClientRequest("/lol-champ-select/v1/session", RiftMethods.GET).Result;
+                Session session = JsonConvert.DeserializeObject<Session>(session_str);
 
-                Thread.Sleep(5000);
+                int MyCellId = -1;
 
-                if(searchState == "Found")
+                Console.WriteLine(session.myTeam.Length);
+
+                for (int s = 0; s < session.myTeam.Length; s++)
                 {
+                    bool found = false;
 
-                    founded = true;    
-                    OnReadyCheck?.Invoke();
-                    
+                    if (found == true)
+                    {
+                        break;
+                    }
+
+                    int summonerId = session.myTeam[s].summonerId;
+                    Console.WriteLine(summonerId);
+
+
+                    if (summonerId == 781367)
+                    {
+                        Console.WriteLine("------------------");
+                        MyCellId = session.myTeam[s].cellId;
+                        found = true;
+                        Console.WriteLine("My Cell id is: " + MyCellId);
+                    }
+
                 }
+
+                string PickEndpoint = $"/lol-champ-select/v1/session/actions/{MyCellId}";
+                string Key = @"""championId""";
+                string BodyJson = $"{Key}:{ChampionId}";
+                try
+                {
+                    ClientRequest(PickEndpoint, RiftMethods.PATCH, "{" + BodyJson + "}");
+                    success = true;
+                    return success;
+                }
+                catch
+                {
+                    
+                    return success;
+
+                }
+
+
             }
-        }
-        public void PickChampion()
-        {
+            catch 
+            {
+                
+                return success;
+
+            }
 
         }
 
         //Utils
-        private T Request<T>(string endpoint, string method)
+        public async Task<string> ClientRequest(string EndPoint, RiftMethods Method)
         {
-            //nsole.WriteLine("Passou por aqui");
-            var req = (HttpWebRequest)WebRequest.Create(LeagueClient.URL + endpoint);
-            req.Method = method;
-            req.Headers["Authorization"] = "Basic " + Convert.ToBase64String(
-                Encoding.Default.GetBytes(LeagueClient.Username + ":" + LeagueClient.AuthToken));
-            req.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
-            try
+            //Request Sem Params
+            switch (Method)
             {
-                using (var response = req.GetResponse())
-                {
-                    
-                    var streamData = response.GetResponseStream();
-                    StreamReader reader = new StreamReader(streamData);
-                    object objResponse = reader.ReadToEnd();
-                    Console.ReadLine();
-                    streamData.Close();
-                    response.Close();
-                    return (T)objResponse;
-                }
+                case RiftMethods.GET:
+                    {
+                        HttpResponseMessage response = await httpClient.GetAsync(EndPoint);
+                        string output = "Nao retorna nada";
+                        Console.WriteLine(response.StatusCode);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            output = await response.Content.ReadAsStringAsync();
+                        }
+                        return output;
+                    }
+
+                case RiftMethods.POST: //POST sem body
+                    break;
             }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine("Deu erro");
-                return default(T);
-            }
+            return null;
         }
-        private void Request(string endpoint, string method)
+        public async Task<string> ClientRequest(string EndPoint, RiftMethods Method, string Body)
         {
-            Console.WriteLine("Passou por aqui");
-            var req = (HttpWebRequest)WebRequest.Create(LeagueClient.URL + endpoint);
-            req.Method = method;
-            req.Headers["Authorization"] = "Basic " + Convert.ToBase64String(
-                Encoding.Default.GetBytes(LeagueClient.Username + ":" + LeagueClient.AuthToken));
-            req.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
-            try
+            //Request Sem Params
+            switch (Method)
             {
-                using (var response = req.GetResponse())
-                {
-                    var streamData = response.GetResponseStream();
-                    StreamReader reader = new StreamReader(streamData);
-                    object objResponse = reader.ReadToEnd();
-                    Console.ReadLine();
-                    streamData.Close();
-                    response.Close();
-                }
+                case RiftMethods.PATCH:
+                    var method = new HttpMethod("PATCH");
+                    
+                    Console.WriteLine(Body);
+                    //var jsonString = JsonConvert.SerializeObject(Body);
+                    //Console.WriteLine(jsonString);
+                    var content = new StringContent(Body, Encoding.UTF8, "application/json");
+
+                    var request = new HttpRequestMessage(method, LeagueClient.URL + EndPoint)
+                    {
+                        Content = content
+                    };
+                    Console.WriteLine("Headers: "+ request.Headers);
+                    Console.WriteLine("Content: "+ request.Content);
+
+                    HttpResponseMessage response = await httpClient.SendAsync(request);
+
+                    Console.WriteLine("StatusCode: "+ response.StatusCode);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var output = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Pickado");
+                        return output;
+                    }
+                    break;
+
+                case RiftMethods.POST: //POST sem body
+                    break;
             }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine("Deu erro");
-            }
+            return null;
         }
 
 
     }
-    class RiftResponse
+    enum RiftMethods
     {
-        string Result { get; }
-
+        GET = 0,
+        POST = 1,
+        PUT = 2,
+        DELETE = 3,
+        PATCH = 4,
     }
 }

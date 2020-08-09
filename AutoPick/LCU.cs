@@ -30,11 +30,7 @@ namespace Luna.Autopick.LCU
         public event Action OnConnected;
         public event Action OnDisconnected;
 
-        public void Start()
-        {
-
-        }
-
+        
         public void SetProperties()
         {
             foreach (var p in Process.GetProcessesByName("LeagueClientUx"))

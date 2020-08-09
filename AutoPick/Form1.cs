@@ -11,11 +11,15 @@ using Luna.Autopick;
 using Luna.Autopick.LCU;
 using Luna.Autopick.Rift;
 using Luna.Autopick.Models;
+using System.IO;
+using System.Threading;
 
-namespace AutoPick
+namespace VoidWalker
 {
     public partial class Form1 : Form
     {
+
+        private Champion championSelected;
         public Form1()
         {
             InitializeComponent();
@@ -32,24 +36,38 @@ namespace AutoPick
                 comboBox1.Items.Add(champion);
                 if(champion == "Yone")
                 {
-                    Champion yone = autopick.champions.Data["Yone"];
-                    Console.WriteLine(yone.Key);
+                    Champion ChampionSelected = autopick.champions.Data["Yone"];
                 }
             }
         }
         
         private void button1_Click(object sender, EventArgs e)
         {
-            LeagueClient lcu = new LeagueClient();
-            lcu.SetProperties();
+            
             //lcu.OnConnected += FoiConectado;
             //lcu.OnDisconnected += FoiDesconectado;
             //lcu.GetStatus();
-            Rift rift = new Rift(lcu);
-            rift.GetSummonerName();
+            //rift.GetSummonerName();
+            Thread t_thread = new Thread(T_Pick);
+            t_thread.IsBackground = true;
+            t_thread.Start();
 
         }
         private void FoiConectado() => Console.WriteLine("Foi Conectado!");
         private void FoiDesconectado() => Console.WriteLine("Foi Desconectado!");
+        private void T_Pick()
+        {
+            LeagueClient lcu = new LeagueClient();
+            lcu.SetProperties();
+
+            Rift rift = new Rift(lcu);
+
+            bool success = false;
+            while ( success == false)
+            {
+                success = rift.PickChampion(777);
+                
+            }
+        }
     }
 }
