@@ -1,5 +1,6 @@
-﻿using Luna.Autopick.LCU;
-using Luna.AutoPick.Rift.Models;
+﻿using Luna.Autopick.DDragon.Models;
+using Luna.Autopick.LCU;
+using Luna.Autopick.Rift.Models;
 using Newtonsoft.Json;
 using System;
 using System.Net;
@@ -19,38 +20,44 @@ namespace Luna.Autopick.Rift
     }
     class Rift
     {
+        //Properties
+        public Summoner Summoner { get => _summoners; }
+
         //Fields
-        private LeagueClient LeagueClient;
+        private LeagueClient _lolClient;
         private HttpClient httpClient;
+        private Summoner _summoners;
+        
         //Events
         public event System.Action OnReadyCheck;
+        public event System.Action OnChatConnected;
 
         public Rift(LeagueClient leagueclient)
         {
-            LeagueClient = leagueclient;
+            _lolClient = leagueclient;
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
             //HTTP
             httpClient = new HttpClient();
 
-            httpClient.BaseAddress = new Uri(LeagueClient.URL);
+            httpClient.BaseAddress = new Uri(_lolClient.URL);
             httpClient.DefaultRequestHeaders.Clear();
             //Auth
             httpClient.DefaultRequestHeaders.Add(
                 "authorization",
                 "Basic " + Convert.ToBase64String(
-                Encoding.Default.GetBytes(LeagueClient.Username + ":" + LeagueClient.AuthToken)));
+                Encoding.Default.GetBytes(_lolClient.Username + ":" + _lolClient.AuthToken)));
 
-            Console.WriteLine(LeagueClient.Username);
-            Console.WriteLine(LeagueClient.AuthToken);
+            Console.WriteLine(_lolClient.Username);
+            Console.WriteLine(_lolClient.AuthToken);
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
         }
 
         //Methods
-        public bool PickChampion(int ChampionId)
+        public bool PickChampion(Champion champion)
         {
-                bool success = false;
+            bool success = false;
             try
             {
                 string session_str = ClientRequest("/lol-champ-select/v1/session", RiftMethods.GET).Result;
@@ -85,7 +92,7 @@ namespace Luna.Autopick.Rift
 
                 string PickEndpoint = $"/lol-champ-select/v1/session/actions/{MyCellId}";
                 string Key = @"""championId""";
-                string BodyJson = $"{Key}:{ChampionId}";
+                string BodyJson = $"{Key}:{champion.Key}";
                 try
                 {
                     ClientRequest(PickEndpoint, RiftMethods.PATCH, "{" + BodyJson + "}");
@@ -109,8 +116,31 @@ namespace Luna.Autopick.Rift
             }
 
         }
+        public Summoner GetSummoner()
+        {
+            try
+            {
+                Console.WriteLine(_lolClient.URL);
+                Summoner outputSummoner = new Summoner();
+                string summonerRes = ClientRequest("/lol-summoner/v1/current-summoner", RiftMethods.GET).Result;
+                Console.WriteLine(summonerRes);
 
+                outputSummoner = JsonConvert.DeserializeObject<Summoner>(summonerRes);
+
+                Console.WriteLine(outputSummoner.displayName);
+
+                _summoners = outputSummoner;
+                return outputSummoner;
+            }
+            catch
+            {
+                return null;
+            }
+
+        }
+        
         //Utils
+        //Get,Post, Put with no Body
         public async Task<string> ClientRequest(string EndPoint, RiftMethods Method)
         {
             //Request Sem Params
@@ -118,8 +148,10 @@ namespace Luna.Autopick.Rift
             {
                 case RiftMethods.GET:
                     {
-                        HttpResponseMessage response = await httpClient.GetAsync(EndPoint);
-                        string output = "Nao retorna nada";
+                        Uri uri = new Uri(_lolClient.URL + EndPoint);
+                        HttpResponseMessage response = await httpClient.GetAsync(uri);
+
+                        string output = null;
                         Console.WriteLine(response.StatusCode);
 
                         if (response.IsSuccessStatusCode)
@@ -134,6 +166,8 @@ namespace Luna.Autopick.Rift
             }
             return null;
         }
+    
+        //Get,Post, Put with Body
         public async Task<string> ClientRequest(string EndPoint, RiftMethods Method, string Body)
         {
             //Request Sem Params
@@ -147,7 +181,7 @@ namespace Luna.Autopick.Rift
                     //Console.WriteLine(jsonString);
                     var content = new StringContent(Body, Encoding.UTF8, "application/json");
 
-                    var request = new HttpRequestMessage(method, LeagueClient.URL + EndPoint)
+                    var request = new HttpRequestMessage(method, _lolClient.URL + EndPoint)
                     {
                         Content = content
                     };
@@ -168,10 +202,9 @@ namespace Luna.Autopick.Rift
                 case RiftMethods.POST: //POST sem body
                     break;
             }
+
             return null;
         }
-
-
     }
     
 }

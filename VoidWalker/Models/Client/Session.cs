@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.AutoPick.Rift.Models
+namespace Luna.Autopick.Rift.Models
 {
 
     public class Session

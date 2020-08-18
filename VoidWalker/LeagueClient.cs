@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Luna.Autopick.Rift.Models;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Luna.Autopick.LCU
 {
@@ -23,15 +25,20 @@ namespace Luna.Autopick.LCU
         private int _appPort;
         private string _authToken;
         private string _path;
+        private Thread _connectionT;
 
         private bool isConnected;
 
         //events
-        public event Action OnConnected;
-        public event Action OnDisconnected;
+        public event System.Action OnConnected;
+        public event System.Action OnDisconnected;
 
-        
-        public void SetProperties()
+        public LeagueClient()
+        {
+            SetProperties();
+        }
+
+        private void SetProperties()
         {
             foreach (var p in Process.GetProcessesByName("LeagueClientUx"))
             {
@@ -70,7 +77,18 @@ namespace Luna.Autopick.LCU
             }
         }
 
-        public void GetStatus()
+    
+        public void Start()
+        {
+            // Start new threads listener
+
+            _connectionT = new Thread(ConnectionThread);
+            _connectionT.IsBackground = true;
+            _connectionT.Start();
+
+        }
+
+        private void ConnectionThread()
         {
             string lockfilePath = Path + @"\lockfile";
 
@@ -82,7 +100,6 @@ namespace Luna.Autopick.LCU
             {
                 isConnected = false;
             }
-            
             //false
             while (true)
             {
@@ -107,6 +124,7 @@ namespace Luna.Autopick.LCU
 
             }
         }
+        
     }
 
 }
