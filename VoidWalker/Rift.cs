@@ -49,8 +49,8 @@ namespace Luna.Autopick.Rift
                 "Basic " + Convert.ToBase64String(
                 Encoding.Default.GetBytes(_lolClient.Username + ":" + _lolClient.AuthToken)));
 
-            Console.WriteLine(_lolClient.Username);
-            Console.WriteLine(_lolClient.AuthToken);
+            //Console.WriteLine(_lolClient.Username);
+            //Console.WriteLine(_lolClient.AuthToken);
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
         }
 
@@ -75,11 +75,8 @@ namespace Luna.Autopick.Rift
                     {
                         break;
                     }
-
                     int summonerId = session.myTeam[s].summonerId;
                     Console.WriteLine(summonerId);
-
-
                     if (summonerId == 781367)
                     {
                         Console.WriteLine("------------------");
@@ -87,9 +84,7 @@ namespace Luna.Autopick.Rift
                         found = true;
                         Console.WriteLine("My Cell id is: " + MyCellId);
                     }
-
                 }
-
                 string PickEndpoint = $"/lol-champ-select/v1/session/actions/{MyCellId}";
                 string Key = @"""championId""";
                 string BodyJson = $"{Key}:{champion.Key}";
@@ -101,18 +96,12 @@ namespace Luna.Autopick.Rift
                 }
                 catch
                 {
-                    
                     return success;
-
                 }
-
-
             }
             catch 
             {
-                
                 return success;
-
             }
 
         }
@@ -120,14 +109,14 @@ namespace Luna.Autopick.Rift
         {
             try
             {
-                Console.WriteLine(_lolClient.URL);
+                //Console.WriteLine(_lolClient.URL);
                 Summoner outputSummoner = new Summoner();
                 string summonerRes = ClientRequest("/lol-summoner/v1/current-summoner", RiftMethods.GET).Result;
-                Console.WriteLine(summonerRes);
+                //Console.WriteLine(summonerRes);
 
                 outputSummoner = JsonConvert.DeserializeObject<Summoner>(summonerRes);
 
-                Console.WriteLine(outputSummoner.displayName);
+                //Console.WriteLine(outputSummoner.displayName);
 
                 _summoners = outputSummoner;
                 return outputSummoner;
@@ -152,7 +141,7 @@ namespace Luna.Autopick.Rift
                         HttpResponseMessage response = await httpClient.GetAsync(uri);
 
                         string output = null;
-                        Console.WriteLine(response.StatusCode);
+                        //Console.WriteLine(response.StatusCode);
 
                         if (response.IsSuccessStatusCode)
                         {

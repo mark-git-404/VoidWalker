@@ -47,6 +47,7 @@
             // 
             // cmbBox_Champion
             // 
+            this.cmbBox_Champion.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.cmbBox_Champion.FormattingEnabled = true;
             this.cmbBox_Champion.Location = new System.Drawing.Point(35, 36);
             this.cmbBox_Champion.Name = "cmbBox_Champion";
@@ -64,7 +65,7 @@
             this.btn_Start.TabIndex = 1;
             this.btn_Start.Text = "Start";
             this.btn_Start.UseVisualStyleBackColor = false;
-            this.btn_Start.Click += new System.EventHandler(this.button1_Click);
+            this.btn_Start.Click += new System.EventHandler(this.btn_StartClick);
             // 
             // txtbox_Chat
             // 

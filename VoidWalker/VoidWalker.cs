@@ -29,6 +29,7 @@ namespace VoidWalker
             rift = new Rift(lcu);
 
             dDragon = new DDragon();
+            Console.WriteLine(dDragon.LastPatch());
             List<string> champions = dDragon.GetAllChampions();
 
             foreach(var champion in champions)
@@ -36,8 +37,8 @@ namespace VoidWalker
                 cmbBox_Champion.Items.Add(champion);
             }
         }
-        
-        private void button1_Click(object sender, EventArgs e)
+
+        private void btn_StartClick(object sender, EventArgs e)
         {
             //Issue 1: Http client only works in thread
             Thread t_thread = new Thread(Pick_t);
@@ -45,9 +46,9 @@ namespace VoidWalker
             t_thread.Start();
 
         }
-
         private void Pick_t()
         {
+
             Summoner sum = rift.GetSummoner();
 
             bool success = false;
@@ -66,6 +67,5 @@ namespace VoidWalker
                 success = rift.PickChampion(championSelected);
             }
         }
-        
     }
 }

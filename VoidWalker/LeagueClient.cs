@@ -1,5 +1,4 @@
-﻿using Luna.Autopick.Rift.Models;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -51,7 +50,7 @@ namespace Luna.Autopick.LCU
 
                 //Regex 
                 string re_appPort = @"--app-port=[0-9]{5}";
-                string re_authToken = @"--remoting-auth-token=[0-z]{22}";
+                string re_authToken = @"--remoting-auth-token=[--z]{22}";
                 string re_pidName = @"--app-name=[A-z]{12}";
                 string re_path = @"--output-base-dir=[0-z\s]*";
 
